@@ -1,11 +1,13 @@
 #include <random>
 #include <iostream>
+#include <string>
 #include <algorithm>
 #include <chrono>
 
 #include "BaseGraph/algorithms/layeredconfigurationmodel.h"
 #include "BaseGraph/algorithms/randomgraphs.h"
 #include "BaseGraph/metrics/undirected.h"
+#include "BaseGraph/fileio.h"
 
 using namespace std;
 
@@ -16,14 +18,14 @@ extern std::mt19937_64 rng;
 
 
 
-template<typename T>
-void printvector(const vector<T>& v) {
+// template<typename T>
+// void printVector(const vector<T>& v) {
 
-    for (auto x: v)
-        cout << x << ",";
-    cout << endl;
+//     for (auto x: v)
+//         cout << "(" << x.first << "," << x.second << ");";
+//     cout << endl;
 
-}
+// }
 
 
 struct NodeProperties {
@@ -40,10 +42,10 @@ struct NodeProperties {
 
     NodeProperties() {}
 
-    friend ostream& operator <<(std::ostream& stream, const NodeProperties node) {
-        stream << node.nodeIdx << "," << node.core << "," << node.layer << "," << node.layerOfCurrentNeighbour << "," << node.layerOfNewNeighbour << "," << node.numberOfBlackAndRedNeighbours << "," << node.numberOfRedNeighbours << "," << node.isInFirstLayerOfCore << endl;
-        return stream;
-    }
+    // friend ostream& operator <<(std::ostream& stream, const NodeProperties node) {
+    //     stream << node.nodeIdx << "," << node.core << "," << node.layer << "," << node.layerOfCurrentNeighbour << "," << node.layerOfNewNeighbour << "," << node.numberOfBlackAndRedNeighbours << "," << node.numberOfRedNeighbours << "," << node.isInFirstLayerOfCore << endl;
+    //     return stream;
+    // }
 
 };
 
@@ -123,10 +125,13 @@ void shuffleGraphWithLayeredConfigurationModel(UndirectedGraph &graph, vector<pa
         if (onionDecompositionIsChanged(nodeD))
             continue;
 
-        updateNumberOfBlackAndRedNeighbours(numberOfBlackAndRedNeighbours, nodeA);
-        updateNumberOfBlackAndRedNeighbours(numberOfBlackAndRedNeighbours, nodeB);
-        updateNumberOfBlackAndRedNeighbours(numberOfBlackAndRedNeighbours, nodeC);
-        updateNumberOfBlackAndRedNeighbours(numberOfBlackAndRedNeighbours, nodeD);
+        // // test
+        // cout << "Swapped edges (" << currentEdge1.first << "," << currentEdge1.second << ");(" << currentEdge2.first << "," << currentEdge2.second << ") to (" << newEdge1.first << "," << newEdge1.second << ");(" << newEdge2.first << "," << newEdge2.second << ")." << endl;
+        // cout << nodeA << endl;
+        // cout << nodeB << endl;
+        // cout << nodeC << endl;
+        // cout << nodeD << endl;
+
 
         graph.removeEdgeIdx(currentEdge1);
         graph.removeEdgeIdx(currentEdge2);
@@ -135,7 +140,38 @@ void shuffleGraphWithLayeredConfigurationModel(UndirectedGraph &graph, vector<pa
 
         edgeVector[edge1Idx] = newEdge1;
         edgeVector[edge2Idx] = newEdge2;
+
+        updateNumberOfBlackAndRedNeighbours(numberOfBlackAndRedNeighbours, nodeA);
+        updateNumberOfBlackAndRedNeighbours(numberOfBlackAndRedNeighbours, nodeB);
+        updateNumberOfBlackAndRedNeighbours(numberOfBlackAndRedNeighbours, nodeC);
+        updateNumberOfBlackAndRedNeighbours(numberOfBlackAndRedNeighbours, nodeD);
+
     }
+}
+
+
+void sampleFromLayeredConfigurationModel(UndirectedGraph& graph, vector<pair<VertexIndex, VertexIndex>>& edgeVector, const size_t& swaps, const size_t& sampleSize, const string& headerFileName, bool binaryFile=false) {
+
+    string fileName;
+
+    if (binaryFile==false) {
+
+        for (size_t i=0; i<sampleSize; i++) {
+            shuffleGraphWithLayeredConfigurationModel(graph, edgeVector, swaps);
+            fileName = headerFileName+to_string(i)+".txt";
+            writeEdgeListIdxInTextFile(graph, fileName);
+        }
+
+    }
+    else {
+
+        for (size_t i=0; i<sampleSize; i++) {
+            shuffleGraphWithLayeredConfigurationModel(graph, edgeVector, swaps);
+            fileName = headerFileName+to_string(i)+".bin";
+            writeEdgeListIdxInBinaryFile(graph, fileName);
+        }
+    }
+
 }
 
 
@@ -186,9 +222,9 @@ static bool onionDecompositionIsChanged(NodeProperties node) {
                 isOnionDecompositionChanged = true;
 
         }
-        else if (node.layerOfCurrentNeighbour<node.layer) {
+        else {
 
-            if (node.layerOfNewNeighbour>=node.layer)
+            if (node.layerOfNewNeighbour<node.layer)
                 isOnionDecompositionChanged = false;
             else
                 isOnionDecompositionChanged = true;
@@ -216,7 +252,7 @@ static bool onionDecompositionIsChanged(NodeProperties node) {
 
             if (node.numberOfBlackAndRedNeighbours==node.core+1) {
 
-                if (node.layerOfNewNeighbour>=node.layer-1)
+                if (node.layerOfNewNeighbour==node.layer-1)  // changed >= to ==
                     isOnionDecompositionChanged = false;
                 else
                     isOnionDecompositionChanged = true;

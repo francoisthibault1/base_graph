@@ -214,4 +214,5 @@ PYBIND11_MODULE(basegraph, m){
     // Layered configuration model
     m.def("shuffle_graph_with_layered_configuration_model", py::overload_cast<UndirectedGraph&, size_t> (&shuffleGraphWithLayeredConfigurationModel));
     m.def("shuffle_graph_with_layered_configuration_model", py::overload_cast<UndirectedGraph&, std::vector<std::pair<VertexIndex, VertexIndex>>&, size_t> (&shuffleGraphWithLayeredConfigurationModel));
+    m.def("sample_from_layered_configuration_model", &sampleFromLayeredConfigurationModel);
 }

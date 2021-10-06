@@ -11,3 +11,6 @@ add_executable(vertex_labeled_example vertex_labeled.cpp)
 
 target_link_libraries(undirected_example ${CMAKE_SOURCE_DIR}/../build/src/libBaseGraph.a)
 target_link_libraries(vertex_labeled_example ${CMAKE_SOURCE_DIR}/../build/src/libBaseGraph.a)
+
+add_executable(lcm lcm.cpp)
+target_link_libraries(lcm ${CMAKE_SOURCE_DIR}/../build/src/libBaseGraph.a)
